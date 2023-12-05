@@ -20,36 +20,73 @@ def setup_get_headers(token):
 
 def fetch_search_config(token, api_key, api_secret, pcc_url):
     search_config_url = f"https://{pcc_url}/search/config"
-
-    get_headers = setup_get_headers(token)
-
-    request_data = {
-        "query": "config from cloud.resource where cloud.type = 'azure' AND api.name = 'azure-subscription-list' AND json.rule = tags contains \"__AUTO_TEST\"",
-        "timeRange": {
-            "type": "relative",
-            "value": {
-                "unit": "hour",
-                "amount": 24
+    # get_headers = setup_get_headers(token)
+    headers = {"content-type": "application/json; charset=UTF-8", "x-redlock-auth": token}
+    limit = 10
+    next_page_token = None
+    request_data = json.dumps(
+        {
+            "limit": limit,
+            "nextPageToken": next_page_token,
+            "query": "config from cloud.resource where cloud.type = 'azure' AND api.name = 'azure-subscription-list' AND json.rule = tags contains \"__AUTO_TEST\"",
+            "timeRange": {
+                "type": "relative",
+                "value": {
+                    "unit": "hour",
+                    "amount": 24
+                }
             }
         }
-    }
+    )
 
-    response = requests.post(search_config_url, headers=get_headers, json=request_data)
-    response.raise_for_status()
-
-    if response.text:
-        try:
-            search_config_data = response.json()
-            items = search_config_data.get("data", {}).get("items", [])
-            extracted_data = [{"subscription_id": item.get("data", {}).get("subscriptionId"),
-                              "auto_test_tag": item.get("data", {}).get("tags", {}).get("__AUTO_TEST")} for item in items]
-            return extracted_data
-        except json.JSONDecodeError:
-            print("Error: The response does not contain valid JSON data.")
-            return None
-    else:
-        print("Error: The response is empty.")
+    try:
+        response = requests.post(search_config_url, headers=headers, data=request_data)
+        response.raise_for_status()
+        # return extracted_data
+    except json.JSONDecodeError:
+        print("Error: The response does not contain valid JSON data.")
         return None
+
+    search_config_data = response.json()
+    items = search_config_data.get("data", {}).get("items", [])
+    extracted_data = [{"subscription_id": item.get("data", {}).get("subscriptionId"),
+                            "auto_test_tag": item.get("data", {}).get("tags", {}).get("__AUTO_TEST")} for item in items]
+
+    # Initialize items with first page data
+    items = search_config_data["data"]["items"]
+    total_rows = search_config_data["data"]["totalRows"]
+    data = search_config_data.get("data", {})
+    next_page_token = data.get("nextPageToken", None)
+
+
+    print(f"Total rows: {total_rows}")        
+
+    while total_rows > 0:   
+        if not next_page_token:
+            break
+        
+        search_config_url = f"https://{pcc_url}/search/config/page"
+        payload = json.dumps(
+            {
+                "limit": limit,
+                "withResourceJson": True, 
+                "pageToken": next_page_token,
+            }
+        )
+
+        response = requests.post(search_config_url, headers=headers, data=payload)        
+        response.raise_for_status()
+
+        search_config_data = response.json()
+        items = search_config_data.get("items", [])
+        extracted_data.extend({"subscription_id": item.get("data", {}).get("subscriptionId"),
+                                "auto_test_tag": item.get("data", {}).get("tags", {}).get("__AUTO_TEST")} for item in items )
+
+        total_rows = search_config_data["totalRows"]
+        next_page_token = search_config_data.get("nextPageToken", None)      
+ 
+    return extracted_data   
+
 
 def check_account_group_exists(token, api_key, api_secret, pcc_url, subscription_id):
     get_account_groups_url = f"https://{pcc_url}/cloud/group"
