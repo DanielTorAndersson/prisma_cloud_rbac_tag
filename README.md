@@ -49,7 +49,8 @@ Before running the script, ensure that you have the following:
 
 ## Notes
 
-This script does not include any code for clean-up.
+1. This script does not include any code for clean-up.
+2. This script does not include creation of user in Prisma Cloud.
 
 
 ## Troubleshooting
