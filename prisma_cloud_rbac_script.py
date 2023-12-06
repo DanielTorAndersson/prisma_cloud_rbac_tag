@@ -3,6 +3,7 @@ import requests
 import json
 import time
 
+
 def get_prismacloud_token(api_key, api_secret, pcc_url):
     auth_url = f"https://{pcc_url}/login"
 

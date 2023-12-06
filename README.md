@@ -5,8 +5,10 @@
 This script automates the setup of Role-Based Access Control (RBAC) configurations in Prisma Cloud, specifically tailored for Microsoft Azure subscriptions. The script leverages the Prisma Cloud API to perform the following tasks:
 
 1. **Fetch Azure Subscription Information:**
-   - Query Prisma Cloud to retrieve Azure subscription data using a predefined search query. The predefined query will look at subscription level if there are any tags that matches the key "__AUTO_TEST", and will use the value for the RBAC configuration.
+   - Query Prisma Cloud to retrieve Azure subscription data using a predefined search query. The predefined query will look at subscription level if there are any tags that matches the key defined as "__AUTO_TEST". The script will use the Value of the same key/value pair for the RBAC configuration in this script.
    - Extract relevant information such as subscription IDs and associated tags.
+
+   Note: "__AUTO_TEST" tag value can be replaced to match a key/value pair in Azure subscriptions.
 
 2. **Create Account Groups:**
    - Check the existence of account groups for each Azure subscription.
@@ -30,7 +32,7 @@ Before running the script, ensure that you have the following:
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/yourusername/prisma-cloud-rbac-automation.git
+   git clone https://github.com/danieltorandersson/prisma-cloud-rbac-automation.git
    cd prisma-cloud-rbac-automation
 
 
