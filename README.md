@@ -10,14 +10,19 @@ This script automates the setup of Role-Based Access Control (RBAC) configuratio
 
    Note: "__AUTO_TEST" tag value can be replaced to match a key/value pair in Azure subscriptions.
 
+   The RQL query are defined on line #32, and it can be modified to match a smaller scope. Like a specific subscription rather than all.
+   Use "investigate" tab in Prisma to find a good scope to test if needed.
+
 2. **Create Account Groups:**
    - Check the existence of account groups for each Azure subscription.
    - If an account group doesn't exist, create a new one with a specific naming convention.
+   - The account group will be named with the subscription ID of which is matches for tracing perspective.
 
 3. **Update User Roles:**
    - Check for the existence of user roles based on predefined tags.
    - If a user role exists, update it with the corresponding account group IDs.
    - If a user role doesn't exist, create a new one with the associated account group.
+   - The granular user roles will be named after the users, so they can be reused if a email a found in more than one place.
 
 ## Prerequisites
 
@@ -26,6 +31,8 @@ Before running the script, ensure that you have the following:
 - Prisma Cloud API access credentials (username and password).
 - Prisma Cloud URL.
 - Necessary environment variables set for Prisma Cloud authentication.
+- Subscriptions already onboarded to Prisma Cloud
+- Subscriptions with key/value pair matching in the script
 
 ## How to Use
 
@@ -53,6 +60,7 @@ Before running the script, ensure that you have the following:
 
 1. This script does not include any code for clean-up.
 2. This script does not include creation of user in Prisma Cloud.
+3. The script will create new RBAC structure on side of the existing with Account Groups, Permission Group & Role.
 
 
 ## Troubleshooting
